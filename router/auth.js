@@ -2,6 +2,7 @@ const express = require("express")
 const router = express.Router()
 const Admin = require("../models/admin_election_manager")
 const Candidate = require('../models/CandidateSchema')
+const voter = require("../models/voter")
 const bcrypt = require("bcryptjs")
 const pageAuth = require("../middleware/pageAuth")
 
@@ -63,18 +64,59 @@ router.get("/admin_profile", pageAuth, (req,res) => {
 
 // Add Candidate to Schema
 router.post('/add_candidate', async (req,res) => {
-
-    res.send(req.body)
     // Creating a new candidate
-    const newCandidate = new Candidate(req.body);
+    try {
+        const {name, party, platform, slogan, image} = req.body.values 
+        // console.log(name, party, platform, slogan) 
+        const newCandidate = new Candidate({name, party, platform, slogan, image})
+        
+        newCandidate.save((error) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Candidate saved successfully!');
+              res.status(200).send({status:200, message:'done'})
+            }
+          });
+
     
-    newCandidate.save((error) => {
+    } catch (error) {
+        console.log(error)
+    }    
+})
+
+// Update Candidate
+router.post('/update_candidate', async (req,res) => {
+    // Creating a new candidate
+    try {
+       const { selectedKey } = req.body
+       const {name,party, platform, slogan, image} = req.body.values
+        // console.log(name,party)
+       Candidate.findByIdAndUpdate(selectedKey, { name, party, platform, slogan, image}, (error) => {
         if (error) {
-            res.status(400).send(error);
+          console.log(error);
         } else {
-            res.status(200).send('Candidate created successfully!');
+          console.log('Candidate updated successfully!');
+          res.status(200).send({status:200, message:'done'})
         }
-    });  
+      });
+    } catch (error) {
+        console.log(error)
+    }    
+})
+
+router.post('/delete_candidate', async (req,res) => {
+    // Creating a new candidate
+    try {
+      const { selectedKey } = req.body
+      Candidate.deleteOne({_id:selectedKey}, (err) => {
+        if(!err) {
+            res.status(200).send({status:200, message: 'done'})
+        }
+      })
+    } catch (error) {
+        console.log(error)
+    }    
 })
 
 // get all candidates list 
@@ -112,4 +154,62 @@ router.get("/admin_logout", (req,res) => {
     res.send('Cookie cleared');
 })
 
+// get all candidates list 
+router.get('/getAllVoter', (req, res) => {
+    try {
+        voter.find({}, function (err, voters) {
+          if (err) throw err;
+          res.status(200).send(voters);
+        });
+      } catch (error) {
+        res.status(400).send(error);
+      }  
+})
+
+
+// Voter Registration 
+router.post('/add_voter', async (req,res) => {
+    const { firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified } = req.body.values
+    
+   try {
+        const VoterExists = await voter.findOne({email:email});
+
+        if(VoterExists)
+        {
+            res.status(400).json({ status:400, message: "Voter Already Exists"});
+        }else{
+            const voter = new voter({firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified})
+            voter.save(error => {
+                if(error) {
+                    console.log("Error")
+                }else{
+                    console.log('Voter Added Successfully')
+                    res.send({status:200, message:'done'})
+                }
+              })
+        } 
+    } catch (error) {
+        console.log(error) 
+    } 
+
+    // const Voter = new voter({
+    //     voterId: "V-123456789",
+    //     firstName: "John",
+    //     lastName: "Doe",
+    //     email: "johndoe@example.com",
+    //     password: "$2b$10$wq3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q",
+    //     votingRights: ["5f3610e2a2337b05abd47a22","5f3610e2a2337b05abd47a23"],
+    //     votesCast: ["5f3610e2a2337b05abd47a24"],
+    //     dateOfBirth: "1990-01-01T00:00:00.000Z",
+    //     address: "123 Main St.",
+    //     city: "New York",
+    //     state: "NY",
+    //     zipCode: "10001",
+    //     phoneNumber: "+1-212-555-1212",
+    //     isVerified: true
+    //   })
+
+   
+
+})
 module.exports = router

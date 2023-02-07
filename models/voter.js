@@ -1,21 +1,74 @@
 const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+var Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
-    email: {type: String, required: true},
-    firstname: {type: String, required: true},
-    lastname: {type: String, required: true},
-    middlename: {type: String},
-    password: {type: String, required: true},
-    tokens : [ { token : { type: String, required:true }, last_login : {type:String} } ],
-    status: {type: Number},
-    position: {type: String, required: true},
-    joined_this_position_on: {type: String}
+const voter = new mongoose.Schema({
+    voterId: {
+        type: String,
+        required: true,
+        unique: true
+      },
+      firstName: {
+        type: String,
+        required: true
+      },
+      lastName: {
+        type: String,
+        required: true
+      },
+      email: {
+        type: String,
+        required: true,
+        unique: true
+      },
+      password: {
+        type: String,
+        required: true
+      },
+      votingRights: [{
+        type: Schema.Types.ObjectId,
+        ref: "Ballot"
+      }],
+      votesCast: [{
+        type: Schema.Types.ObjectId,
+        ref: "Vote"
+      }],
+      tokens: [{
+        type: Schema.Types.ObjectId,
+      }],
+      dateOfBirth: {
+        type: Date,
+        required: true
+      },
+      address: {
+        type: String,
+        required: true
+      },
+      city: {
+        type: String,
+        required: true
+      },
+      state: {
+        type: String,
+        required: true
+      },
+      zipCode: {
+        type: String,
+        required: true
+      },
+      phoneNumber: {
+        type: String,
+        required: true
+      },
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
 })
 
 // We are making our password hash
-userSchema.pre('save', async function(next) {
+voter.pre('save', async function(next) {
     if(this.isModified('password')) {
         this.password = await bcrypt.hash(this.password, 12)
     }
@@ -23,7 +76,7 @@ userSchema.pre('save', async function(next) {
 })
 
 // We are generating the tokens
-userSchema.methods.generateAuthToken = async function() {
+voter.methods.generateAuthToken = async function() {
     try {
         let payload = {_id:this._id}
         let unique32Char = process.env.SECRET_CHAR
@@ -39,7 +92,7 @@ userSchema.methods.generateAuthToken = async function() {
 }
 
 //Model 
-const User = mongoose.model("admin_election_manager", userSchema)
+const Voter = mongoose.model("Voter", voter)
 
 // export MODULE TO  USE IN OTHER FILES 
-module.exports = User
+module.exports = Voter
