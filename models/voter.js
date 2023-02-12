@@ -34,11 +34,9 @@ const voter = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: "Vote"
       }],
-      tokens: [{
-        type: Schema.Types.ObjectId,
-      }],
+      tokens : [ { token : { type: String, required:true }, last_login : {type:String} } ],
       dateOfBirth: {
-        type: Date,
+        type:String,
         required: true
       },
       address: {
@@ -62,7 +60,8 @@ const voter = new mongoose.Schema({
         required: true
       },
       isVerified: {
-        type: Boolean,
+        type:String,
+        required:true,
         default: false
       }
 })

@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 const Admin = require("../models/admin_election_manager")
 const Candidate = require('../models/CandidateSchema')
-const voter = require("../models/voter")
+const Voter = require("../models/voter")
 const bcrypt = require("bcryptjs")
 const pageAuth = require("../middleware/pageAuth")
 
@@ -157,7 +157,7 @@ router.get("/admin_logout", (req,res) => {
 // get all candidates list 
 router.get('/getAllVoter', (req, res) => {
     try {
-        voter.find({}, function (err, voters) {
+        Voter.find({}, function (err, voters) {
           if (err) throw err;
           res.status(200).send(voters);
         });
@@ -166,20 +166,20 @@ router.get('/getAllVoter', (req, res) => {
       }  
 })
 
-
 // Voter Registration 
 router.post('/add_voter', async (req,res) => {
-    const { firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified } = req.body.values
-    
+    const { voterId, firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified } = req.body.values
+    const password = 'Shadabkhan123'
    try {
-        const VoterExists = await voter.findOne({email:email});
-
+        
+        const VoterExists = await Voter.findOne({email:email});
+        // console.log(VoterExists)
         if(VoterExists)
         {
             res.status(400).json({ status:400, message: "Voter Already Exists"});
         }else{
-            const voter = new voter({firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified})
-            voter.save(error => {
+            const newVoter = new Voter({voterId,firstName, lastName, email, password, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified})
+            newVoter.save(error => {
                 if(error) {
                     console.log("Error")
                 }else{
@@ -192,24 +192,42 @@ router.post('/add_voter', async (req,res) => {
         console.log(error) 
     } 
 
-    // const Voter = new voter({
-    //     voterId: "V-123456789",
-    //     firstName: "John",
-    //     lastName: "Doe",
-    //     email: "johndoe@example.com",
-    //     password: "$2b$10$wq3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q3q",
-    //     votingRights: ["5f3610e2a2337b05abd47a22","5f3610e2a2337b05abd47a23"],
-    //     votesCast: ["5f3610e2a2337b05abd47a24"],
-    //     dateOfBirth: "1990-01-01T00:00:00.000Z",
-    //     address: "123 Main St.",
-    //     city: "New York",
-    //     state: "NY",
-    //     zipCode: "10001",
-    //     phoneNumber: "+1-212-555-1212",
-    //     isVerified: true
-    //   })
 
-   
+})
 
+// Update voter
+router.post('/update_voter', async (req,res) => {
+    // Creating a new voter
+    try {
+       const { selectedKey } = req.body
+      
+       const {voterId, firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified} = req.body.values
+        // console.log(name,party)
+       Voter.findByIdAndUpdate(selectedKey, { voterId, firstName, lastName, email, dateOfBirth, address, city, state, zipCode, phoneNumber, isVerified }, (error) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Voter updated successfully!');
+          res.status(200).send({status:200, message:'done'})
+        }
+      });
+    } catch (error) {
+        console.log(error)
+    }    
+})
+
+// Delete Voter
+router.post('/delete_voter', async (req,res) => {
+    // Creating a new Voter
+    try {
+      const { selectedKey } = req.body
+      Voter.deleteOne({_id:selectedKey}, (err) => {
+        if(!err) {
+            res.status(200).send({status:200, message: 'done'})
+        }
+      })
+    } catch (error) {
+        console.log(error)
+    }    
 })
 module.exports = router
