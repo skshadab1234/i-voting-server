@@ -3,6 +3,7 @@ const router = express.Router()
 const Admin = require("../models/admin_election_manager")
 const Candidate = require('../models/CandidateSchema')
 const Voter = require("../models/voter")
+const Position = require('../models/Positions')
 const bcrypt = require("bcryptjs")
 const pageAuth = require("../middleware/pageAuth")
 
@@ -230,4 +231,81 @@ router.post('/delete_voter', async (req,res) => {
         console.log(error)
     }    
 })
+
+// Resgisteing Positions 
+router.post('/add_position', async (req,res) => {
+  const { name } = req.body.values
+  
+ try {
+      
+      const PositionExists = await Position.findOne({name:name});
+      // console.log(VoterExists)
+      if(PositionExists)
+      {
+          res.status(400).json({ status:400, message: "Position Already Exists"});
+      }else{
+          const newPosition = new Position({name:name})
+          newPosition.save(error => {
+              if(error) {
+                  console.log("Error")
+              }else{
+                  console.log('Voter Added Successfully')
+                  res.send({status:200, message:'done'})
+              }
+            })
+      } 
+  } catch (error) {
+      console.log(error) 
+  } 
+}
+)
+
+// Get All Position Data
+router.get("/getAllPositions", (req,res) => {
+  try {
+      Position.find({}, function (err, users) {
+        if (err) throw err;
+        res.status(200).send(users);
+      });
+    } catch (error) {
+      res.status(400).send(error);
+    }  
+})
+
+// Update Positions
+router.post('/update_position', async (req,res) => {
+  // Creating a new voter
+  try {
+     const { selectedKey } = req.body
+    
+     const {name} = req.body.values
+      // console.log(name,party)
+     Position.findByIdAndUpdate(selectedKey, { name }, (error) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Positions updated successfully!');
+        res.status(200).send({status:200, message:'done'})
+      }
+    });
+  } catch (error) {
+      console.log(error)
+  }    
+})
+
+// Delete Positions
+router.post('/delete_position', async (req,res) => {
+  
+  try {
+    const { selectedKey } = req.body
+    Position.deleteOne({_id:selectedKey}, (err) => {
+      if(!err) {
+          res.status(200).send({status:200, message: 'done'})
+      }
+    })
+  } catch (error) {
+      console.log(error)
+  }    
+})
+
 module.exports = router
