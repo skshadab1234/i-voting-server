@@ -7,6 +7,14 @@ const positionSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  description: {
+    type: String,
+    required: true,
+  },
+  image: {
+    type: String,
+    required: true,
+  },
   candidates: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Candidate'
