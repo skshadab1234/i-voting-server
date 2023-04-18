@@ -19,6 +19,10 @@ const positionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Candidate'
   }],
+  Voters: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'voter'
+  }],
   date: {
     type: String,
   },

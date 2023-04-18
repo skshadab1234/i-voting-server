@@ -351,8 +351,57 @@ router.post('/updatePositioCandidatesList', async (req, res) => {
     console.log(error);
     res.status(500).send({ status: 500, message: 'Error updating position' });
   }
+})
 
+router.post('/updateVoterList', async (req, res) => {
+  try {
+    const { selectedKey, selectedRowKeys } = req.body;
 
+    const voterObjects = selectedRowKeys.map((value) => ({ _id: value }));
+
+    Position.findOne({ _id: selectedKey }, (error, position) => {
+      if (error) {
+        console.log(error);
+        res.status(500).send({ status: 500, message: 'Error finding Voter' });
+      } else if (!position) {
+        res.status(404).send({ status: 404, message: 'Voter not found' });
+      } else {
+        const existinVoter = position.Voters.map((voter) => voter._id);
+        const newVoterObj = voterObjects.filter((voterObj) => !existinVoter.includes(voterObj._id));
+
+        const updateVoter = position.Voters.filter((voter) => {
+          if (newVoterObj.some((obj) => obj._id === voter._id)) {
+            return true; // Don't remove voters that are still in selectedRowKeys
+          }
+          return selectedRowKeys.includes(voter._id); // Only keep voters that are in selectedRowKeys
+        });
+
+        // Add the new candidates to the array
+        newVoterObj.forEach((obj) => {
+          updateVoter.push(obj);
+        });
+
+        
+        Position.findByIdAndUpdate(
+          selectedKey,
+          { Voters: updateVoter },
+          { new: true },
+          (error) => {
+            if (error) {
+              console.log(error);
+              res.status(500).send({ status: 500, message: 'Error updating voter' });
+            } else {
+              console.log('Voter updated successfully!');
+              res.status(200).send({ status: 200, message: 'Voter updated successfully' });
+            }
+          }
+        );
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ status: 500, message: 'Error updating position' });
+  }
 })
 
 
