@@ -3,7 +3,7 @@ const Admin = require("../models/admin_election_manager")
 
 const pageAuth = async (req, res, next) => {
     try {
-        const token = req.cookies.evotingLoginToken // evotingLoginToken ki jagah aapne token ka naam likhe
+        const token = req.cookies.evotingLoginToken
         const verifyToken = jwt.verify(token, process.env.SECRET_CHAR)
 
         const rootAdmin = await Admin.findOne({ _id : verifyToken._id, "tokens.token" : token })
