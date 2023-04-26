@@ -476,22 +476,41 @@ router.post('/add_election', async (req, res) => {
 // Update Election
 router.post('/update_election', async (req, res) => {
   try {
-    const { selectedKey } = req.body
-    const { positions } = req.body.values
+    const { selectedKey, values } = req.body;
+    const { electionName, date, votingEligibility, pollingLocations, registrationDeadline, earlyVotingInformation, absenteeVotingInformation, voterIDRequirements, electionImage } = values;
+    const { positions = '' } = req.body.values
     const postiArray = positions.split(',')
-    const { electionName, date, votingEligibility, pollingLocations, registrationDeadline, earlyVotingInformation, absenteeVotingInformation, voterIDRequirements, electionImage } = req.body.values
-    Election.findByIdAndUpdate(selectedKey, { electionName, date, votingEligibility, pollingLocations, registrationDeadline, earlyVotingInformation, absenteeVotingInformation, voterIDRequirements, electionImage, Positions: [postiArray] }, (error) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Election updated successfully!');
-        res.status(200).send({ status: 200, message: 'done' })
-      }
-    });
+    
+    const updatedElection = await Election.findByIdAndUpdate(
+      selectedKey, 
+      { 
+        electionName, 
+        date, 
+        votingEligibility, 
+        pollingLocations, 
+        registrationDeadline, 
+        earlyVotingInformation, 
+        absenteeVotingInformation, 
+        voterIDRequirements, 
+        electionImage, 
+        Positions: [postiArray] 
+      }, 
+      { new: true }
+    );
+
+    if (updatedElection) {
+      console.log('Election updated successfully!');
+      res.status(200).send({ status: 200, message: 'done' });
+    } else {
+      console.log('Election not found!');
+      res.status(404).send({ status: 404, message: 'not found' });
+    }
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    res.status(500).send({ status: 500, message: 'server error' });
   }
-})
+});
+
 
 // Get All Election Data
 router.get("/getAllElections", (req, res) => {
